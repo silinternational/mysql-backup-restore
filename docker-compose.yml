@@ -28,7 +28,7 @@ services:
         build: ./
         volumes_from:
             - data
-        volumes:
+#        volumes:
 #            - ./test/world.sql.gz:/tmp/world.sql.gz
         env_file:
             - ./local.env
