@@ -12,7 +12,7 @@ RUN apk update \
 COPY dockerbuild/rsyslog.conf /etc/rsyslog.conf
 
 RUN wget https://raw.githubusercontent.com/silinternational/runny/0.1/runny -O /usr/local/bin/runny \
-    && chmod +x /usr/local/bin/runny
+ && chmod +x /usr/local/bin/runny
 
 COPY application/ /data/
 WORKDIR /data

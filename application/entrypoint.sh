@@ -3,8 +3,7 @@
 if [ "${LOGENTRIES_KEY}" ]; then
     sed -i /etc/rsyslog.conf -e "s/LOGENTRIESKEY/${LOGENTRIES_KEY}/"
     rsyslogd
-    # Sleep to ensure rsyslogd is running before we may need to send logs to it
-    sleep 10
+    sleep 10 # ensure rsyslogd is running before we may need to send logs to it
 else
     logger -p user.error  "Missing LOGENTRIES_KEY environment variable"
 fi
