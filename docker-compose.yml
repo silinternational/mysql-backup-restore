@@ -1,0 +1,58 @@
+version: '2'
+services:
+    data:
+        image: silintl/data-volume:latest
+        volumes:
+          - ./application:/data
+
+    db:
+        image: silintl/mariadb:latest
+        volumes_from:
+            - data
+        ports:
+            - "3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: r00tp@ss!
+            MYSQL_DATABASE: world
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:latest
+        ports:
+            - "8001:80"
+        environment:
+            PMA_HOST: db
+            PMA_USER: root
+            PMA_PASSWORD: r00tp@ss!
+
+    restore:
+        build: ./
+        volumes_from:
+            - data
+        volumes:
+            - ./application:/data
+#            - ./test/world.sql.gz:/tmp/world.sql.gz
+        env_file:
+            - ./local.env
+        environment:
+            MYSQL_HOST: db
+            MYSQL_USER: root
+            MYSQL_PASSWORD: r00tp@ss!
+            DB_NAMES: world
+            MODE: restore
+            CRON_SCHEDULE: "* * * * *"
+
+    backup:
+        build: ./
+        volumes_from:
+            - data
+        volumes:
+            - ./application:/data
+        env_file:
+            - ./local.env
+        environment:
+            MYSQL_HOST: db
+            MYSQL_USER: root
+            MYSQL_PASSWORD: r00tp@ss!
+            DB_NAMES: world
+            MODE: backup
+            CRON_SCHEDULE: "* * * * *"
