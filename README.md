@@ -14,7 +14,7 @@ Service to backup and/or restore mysql databases using S3
 
 `CRON_SCHEDULE="0 2 * * *"` _defaults to every day at 2:00 AM_ [syntax reference](https://en.wikipedia.org/wiki/Cron)
 
-`DB_NAMES=[name1 name2 name3 ...]`
+`DB_NAMES=name1 name2 name3 ...`
 
 `MYSQL_USER=`
 
