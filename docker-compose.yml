@@ -14,6 +14,7 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: r00tp@ss!
             MYSQL_DATABASE: world
+#            MYSQL_DATABASE: employees
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:latest
@@ -30,13 +31,14 @@ services:
             - data
 #        volumes:
 #            - ./test/world.sql.gz:/tmp/world.sql.gz
+#            - ./test/employees.sql.gz:/tmp/employees.sql.gz
         env_file:
             - ./local.env
         environment:
             MYSQL_HOST: db
             MYSQL_USER: root
             MYSQL_PASSWORD: r00tp@ss!
-            DB_NAMES: world
+            DB_NAMES: world #employees
             MODE: restore
             CRON_SCHEDULE: "* * * * *"
 
@@ -50,6 +52,6 @@ services:
             MYSQL_HOST: db
             MYSQL_USER: root
             MYSQL_PASSWORD: r00tp@ss!
-            DB_NAMES: world
+            DB_NAMES: world #employees
             MODE: backup
             CRON_SCHEDULE: "* * * * *"

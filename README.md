@@ -40,3 +40,4 @@ You'll need [Docker](https://www.docker.com/get-docker) and [Make](https://www.g
 
 A UI into the local database will then be running at [http://localhost:8001](http://localhost:8001)
  
+A couple of test databases are provided in the `test` folder if needed.
