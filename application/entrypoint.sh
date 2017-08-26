@@ -9,6 +9,6 @@ else
 fi
 
 # default to every day at 2 am when no schedule is provided
-echo "${CRON_SCHEDULE:=0 2 * * *} runny /data/run.sh" >> /etc/crontabs/root
+echo "${CRON_SCHEDULE:=0 2 * * *} runny /data/${MODE}.sh" >> /etc/crontabs/root
 
 runny $1
