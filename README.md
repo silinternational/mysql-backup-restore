@@ -36,7 +36,7 @@ You'll need [Docker](https://www.docker.com/get-docker) and [Make](https://www.g
 
 1. `cp local.env.dist local.env` and supply variables
 2. Ensure you have a `gz` dump in your S3 bucket to be used for testing.  A test database is provided as part of this project in the `test` folder.
-2. `make`
+3. `make`
 
 A UI into the local database will then be running at [http://localhost:8001](http://localhost:8001)
  
