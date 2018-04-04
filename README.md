@@ -20,6 +20,8 @@ Service to backup and/or restore mysql databases using S3
 
 `MYSQL_PASSWORD=`
 
+`MYSQL_DUMP_ARGS=` (optional) additional arguments to the mysqldump command, e.g., `--max_allowed_packet=50M`
+
 `AWS_ACCESS_KEY=` used for S3 interactions
 
 `AWS_SECRET_KEY=` used for S3 interactions
