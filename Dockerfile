@@ -5,7 +5,6 @@ RUN apk update \
             bash \
             mysql-client \
             python py-pip \
- && update-ca-certificates \
  && pip install s3cmd python-magic
 
 COPY application/ /data/
