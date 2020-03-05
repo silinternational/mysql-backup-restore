@@ -30,7 +30,7 @@ for dbName in ${DB_NAMES}; do
     fi
 
     start=$(date +%s)
-    $(mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${dbName} < /tmp/${dbName}.sql) || STATUS=$?
+    mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${dbName} < /tmp/${dbName}.sql || STATUS=$?
     end=$(date +%s)
 
     if [ $STATUS -ne 0 ]; then
