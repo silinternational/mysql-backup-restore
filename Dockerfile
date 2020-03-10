@@ -10,6 +10,4 @@ RUN apk update \
 COPY application/ /data/
 WORKDIR /data
 
-#ENTRYPOINT ["./entrypoint.sh"]
 CMD ["./entrypoint.sh"]
-#CMD ["crond -f"]
