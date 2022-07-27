@@ -12,6 +12,21 @@ for dbName in ${DB_NAMES}; do
     end=$(date +%s)
 
     if [ $STATUS -ne 0 ]; then
+        echo "*** START DEBUGGING FOR NON-ZERO STATUS ***"
+
+        # display free drive space (human readable)
+        while read -r line; do
+            echo "$line";
+        done <<< $(df -h)
+        echo
+
+        # display free memory in megabytes
+        while read -r line; do
+            echo "$line";
+        done <<< $(free -m)
+
+        echo "*** END DEBUGGING FOR NON-ZERO STATUS ***"
+
         echo "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
     else
