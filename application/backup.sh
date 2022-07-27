@@ -14,16 +14,27 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         echo "*** START DEBUGGING FOR NON-ZERO STATUS ***"
 
-        # display free drive space (human readable)
-        while read -r line; do
-            echo "$line";
-        done <<< $(df -h)
+        # Display update
+        echo $(uptime)
         echo
 
         # display free memory in megabytes
         while read -r line; do
             echo "$line";
         done <<< $(free -m)
+        echo
+
+        # display free drive space (in megabytes)
+        while read -r line; do
+            echo "$line";
+        done <<< $(df -m)
+        echo
+
+        # display swap information
+        while read -r line; do
+            echo "$line";
+        done <<< $(swapon)
+        echo
 
         echo "*** END DEBUGGING FOR NON-ZERO STATUS ***"
 
