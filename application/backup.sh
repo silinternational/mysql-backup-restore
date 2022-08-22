@@ -8,10 +8,31 @@ for dbName in ${DB_NAMES}; do
     echo "mysql-backup-restore: Backing up ${dbName}"
 
     start=$(date +%s)
-    mysqldump -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql || STATUS=$?
+    mysqldump -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql
+    STATUS=$?
     end=$(date +%s)
 
     if [ $STATUS -ne 0 ]; then
+        echo "*** START DEBUGGING FOR NON-ZERO STATUS ***"
+
+        # Display update
+        uptime
+        echo
+
+        # display free drive space (in megabytes)
+        df -m
+        echo
+
+        # display free memory in megabytes
+        free -m
+        echo
+
+        # display swap information
+        swapon
+        echo
+
+        echo "*** END DEBUGGING FOR NON-ZERO STATUS ***"
+
         echo "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
     else
@@ -19,7 +40,8 @@ for dbName in ${DB_NAMES}; do
     fi
 
     start=$(date +%s)
-    gzip -f /tmp/${dbName}.sql || STATUS=$?
+    gzip -f /tmp/${dbName}.sql
+    STATUS=$?
     end=$(date +%s)
     if [ $STATUS -ne 0 ]; then
         echo "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
@@ -29,7 +51,8 @@ for dbName in ${DB_NAMES}; do
     fi
 
     start=$(date +%s)
-    s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET} || STATUS=$?
+    s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET}
+    STATUS=$?
     end=$(date +%s)
     if [ $STATUS -ne 0 ]; then
         echo "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
