@@ -34,7 +34,7 @@ You'll need [Docker](https://www.docker.com/get-docker), [Docker Compose](https:
 
 1. cd .../mysql-backup-restore
 2. mkdir ./mybackups
-3. cp -p test/world.sql.gz ./mybackups
+3. Upload test/world.sql.gz to the S3 bucket.
 4. `make db`  # creates the MySQL DB server
 5. `make restore`  # restores the DB dump file
 6. `docker ps -a`  # get the Container ID of the exited restore container
