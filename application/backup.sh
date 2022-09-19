@@ -17,18 +17,18 @@ for dbName in ${DB_NAMES}; do
 
         # Display update
         uptime
-        echo
+        echo; echo
 
         # display free drive space (in megabytes)
         df -m
-        echo
+        echo; echo
 
         # display free memory in megabytes
         free -m
-        echo
+        echo; echo
 
         # display swap information
-        swapon
+        swapon -s
         echo
 
         echo "*** END DEBUGGING FOR NON-ZERO STATUS ***"
@@ -54,6 +54,7 @@ for dbName in ${DB_NAMES}; do
     s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET}
     STATUS=$?
     end=$(date +%s)
+    rm -f /tmp/${dbname}.sql.gz > /dev/null 2>&1
     if [ $STATUS -ne 0 ]; then
         echo "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
