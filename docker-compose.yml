@@ -6,7 +6,7 @@ services:
           - ./application:/data
 
     db:
-        image: silintl/mariadb:latest
+        image: mariadb:10
         volumes_from:
             - data
         ports:
