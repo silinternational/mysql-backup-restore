@@ -1,5 +1,0 @@
-app:
-  build:
-    image: silintl/mysql-backup-restore
-    dockerfile: ./Dockerfile
-  cached: true
