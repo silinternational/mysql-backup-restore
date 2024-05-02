@@ -30,7 +30,7 @@ Service to backup and/or restore mysql databases to/from S3
 This image is built automatically on Docker Hub as [silintl/mysql-backup-restore](https://hub.docker.com/r/silintl/mysql-backup-restore/).
 
 ## Playing with it locally
-You'll need [Docker](https://www.docker.com/get-docker), [Docker Compose](https://docs.docker.com/compose/install/), and [Make](https://www.gnu.org/software/make/).
+You'll need [Docker Engine](https://docs.docker.com/engine/) with the Docker Compose plugin and [Make](https://www.gnu.org/software/make/).
 
 1. cd .../mysql-backup-restore
 3. Upload test/world.sql.gz to the S3 bucket.
