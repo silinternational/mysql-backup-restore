@@ -61,7 +61,7 @@ for dbName in ${DB_NAMES}; do
         echo "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
-    if [ ${B2_BUCKET} != "" ]; then
+    if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
         b2 upload-file  --noProgress  --quiet  ${B2_BUCKET}  /tmp/${dbName}.sql.gz  ${dbName}.sql.gz
         STATUS=$?
