@@ -2,7 +2,7 @@ FROM python:3-alpine
 
 # Variables set with ARG can be overridden at image build time with
 # "--build-arg var=value".  They are not available in the running container.
-ARG B2_VERSION=v3.10.0
+ARG B2_VERSION=v3.19.1
 
 # Current version of s3cmd is in edge/testing repo
 RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories
