@@ -60,6 +60,20 @@ for dbName in ${DB_NAMES}; do
     else
         echo "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
+
+    if [ "${B2_BUCKET}" != "" ]; then
+        start=$(date +%s)
+        b2 upload-file  --noProgress  --quiet  ${B2_BUCKET}  /tmp/${dbName}.sql.gz  ${dbName}.sql.gz
+        STATUS=$?
+        end=$(date +%s)
+        if [ $STATUS -ne 0 ]; then
+            echo "mysql-backup-restore: FATAL: Copy backup to ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+            exit $STATUS
+        else
+            echo "mysql-backup-restore: Copy backup to ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        fi
+    fi
+
 done
 
 echo "mysql-backup-restore: backup: Completed"
