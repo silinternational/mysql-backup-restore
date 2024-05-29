@@ -63,7 +63,7 @@ for dbName in ${DB_NAMES}; do
 
     if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
-        b2 upload-file  --noProgress  --quiet  ${B2_BUCKET}  /tmp/${dbName}.sql.gz  ${dbName}.sql.gz
+        b2 upload-file  --no-progress  --quiet  ${B2_BUCKET}  /tmp/${dbName}.sql.gz  ${dbName}.sql.gz
         STATUS=$?
         end=$(date +%s)
         if [ $STATUS -ne 0 ]; then
