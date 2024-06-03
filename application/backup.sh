@@ -63,14 +63,19 @@ for dbName in ${DB_NAMES}; do
 
     if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
-        b2 upload-file  --no-progress  --quiet  ${B2_BUCKET}  /tmp/${dbName}.sql.gz  ${dbName}.sql.gz
+        s3cmd \
+            --access_key=${B2_APPLICATION_KEY_ID} \
+	    --secret_key=${B2_APPLICATION_KEY} \
+	    --host=${B2_HOST} \
+	    --host-bucket='%(bucket)s.'"${B2_HOST}" \
+	    put /tmp/${dbName}.sql.gz s3://${B2_BUCKET}/${dbName}.sql.gz
         STATUS=$?
         end=$(date +%s)
         if [ $STATUS -ne 0 ]; then
-            echo "mysql-backup-restore: FATAL: Copy backup to ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+            echo "mysql-backup-restore: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
             exit $STATUS
         else
-            echo "mysql-backup-restore: Copy backup to ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+            echo "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
 
