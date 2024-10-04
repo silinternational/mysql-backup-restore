@@ -1,13 +1,13 @@
-name: Build and Publish
+name: Build and Publish (Develop)
 
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   build-and-publish:
-    name: Build and Publish to DockerHub and GHCR
+    name: Build and Publish to DockerHub and GHCR (Develop)
     runs-on: ubuntu-latest
     steps:
       # Checkout the code
@@ -39,9 +39,8 @@ jobs:
             ghcr.io/${{ github.repository }}                             # For GHCR
           tags: |
             type=ref,event=branch
-            type=ref,event=tag
-            # set latest tag for main branch
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            # set test tag for develop branch
+            type=raw,value=test,enable=${{ github.ref == 'refs/heads/develop' }}
 
       # Build and push Docker image to Docker Hub
       - name: Build and push Docker image to Docker Hub
