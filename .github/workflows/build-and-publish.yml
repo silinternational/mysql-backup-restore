@@ -1,13 +1,13 @@
-name: Build and Publish (Develop)
+name: Build and Publish
 
 on:
   push:
     branches:
-      - develop
+      - main
 
 jobs:
   build-and-publish:
-    name: Build and Publish to DockerHub and GHCR (Develop)
+    name: Build and Publish to DockerHub and GHCR
     runs-on: ubuntu-latest
     steps:
       # Checkout the code
@@ -38,8 +38,8 @@ jobs:
             ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}   # For DockerHub
             ghcr.io/${{ github.repository }}                             # For GHCR
           tags: |
-            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       # Build and push Docker image to Docker Hub
       - name: Build and push Docker image to Docker Hub
@@ -57,4 +57,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:develop
+            ghcr.io/${{ github.repository }}:main
