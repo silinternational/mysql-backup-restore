@@ -38,9 +38,8 @@ jobs:
             ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}   # For DockerHub
             ghcr.io/${{ github.repository }}                             # For GHCR
           tags: |
-            type=ref,event=branch
-            # set test tag for develop branch
-            type=raw,value=test,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/develop' }}
 
       # Build and push Docker image to Docker Hub
       - name: Build and push Docker image to Docker Hub
@@ -48,8 +47,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}:latest
 
       # Build and push Docker image to GHCR
       - name: Build and push Docker image to GHCR
@@ -57,5 +56,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ghcr.io/${{ github.repository }}:develop
