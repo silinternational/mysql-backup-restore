@@ -13,6 +13,8 @@ Service to backup and/or restore mysql databases to/from S3 and optionally to B2
 
 `DB_NAMES` list of the database names
 
+`MYSQL_HOST` hostname of the database server
+
 `MYSQL_USER` user that accesses the database
 
 `MYSQL_PASSWORD` password for the `MYSQL_USER`
