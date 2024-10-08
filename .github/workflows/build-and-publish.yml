@@ -2,26 +2,23 @@ name: Build and Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [ 'main' ]  # Trigger on push to 'main'
+    tags: [ '[0-9]+.[0-9]+.[0-9]+' ]  # Trigger on version tags like '0.1.0'
 
 jobs:
   build-and-publish:
-    name: Build and Publish to DockerHub and GHCR
+    name: Build and Publish Docker image 
     runs-on: ubuntu-latest
     steps:
-      # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Log in to GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -29,32 +26,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker images
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}   # For DockerHub
-            ghcr.io/${{ github.repository }}                             # For GHCR
+            ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}
+            ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch  # Tag with branch name
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          # labels: | 
+          #   org.opencontainers.image.source=${{ github.repository }}
+          #   org.opencontainers.image.revision=${{ github.sha }}
+          #   org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
 
-      # Build and push Docker image to Docker Hub
-      - name: Build and push Docker image to Docker Hub
+      - name: Build and push Docker image to DockerHub and GHCR
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            ${{ vars.DOCKER_ORG }}/${{ github.event.repository.name }}:latest
-
-      # Build and push Docker image to GHCR
-      - name: Build and push Docker image to GHCR
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:main
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
