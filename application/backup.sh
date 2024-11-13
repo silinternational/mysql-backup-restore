@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# Error Tracking
-if [ ! -z "${SENTRY_DSN}" ]; then
-    eval "$(curl -sL https://sentry.io/get-curl.sh)"
-    SENTRY_TRACE_ID=$(uuidgen)
-fi
 
 # Send error to Sentry
 error_to_sentry() {
@@ -11,8 +6,8 @@ error_to_sentry() {
     local db_name="$2"
     local status_code="$3"
 
-    if [ ! -z "${ SENTRY_DSN }" ]; then
-        curl -X POST "${ SENTRY_DSN }" \
+    if [ ! -z "${SENTRY_DSN}" ]; then
+        curl -X POST "${SENTRY_DSN}" \
             -H "Content-Type: application/json" \
             -d "{
                 \"message\": \"${error_message}\",
@@ -20,11 +15,12 @@ error_to_sentry() {
                 \"extra\": {
                     \"database\": \"${db_name}\",
                     \"status_code\": \"${status_code}\",
-                    \"hostname\": \"${HOSTNAME}\",
-                    \"trace_id\": \"${SENTRY_TRACE_ID}\"
+                    \"hostname\": \"${HOSTNAME}\"
                     }
-}"; fi 
+}" 
+    fi 
 }
+
 STATUS=0
 
 echo "mysql-backup-restore: backup: Started"
