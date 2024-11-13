@@ -6,7 +6,7 @@ error_to_sentry() {
     local db_name="$2"
     local status_code="$3"
 
-     if [ ! -z "${SENTRY_DSN}" ]; then
+if [ ! -z "${SENTRY_DSN}" ]; then
     wget -q --header="Content-Type: application/json" \
          --post-data="{
             \"message\": \"${error_message}\",
