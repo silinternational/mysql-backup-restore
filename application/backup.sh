@@ -58,7 +58,7 @@ for dbName in ${DB_NAMES}; do
         error_to_sentry "$error_message" "$dbName" "$STATUS"
         echo "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
-        else 
+    else 
             echo "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
