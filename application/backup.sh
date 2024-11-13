@@ -6,19 +6,19 @@ error_to_sentry() {
     local db_name="$2"
     local status_code="$3"
 
-    if [ ! -z "${SENTRY_DSN}" ]; then
-        curl -X POST "${SENTRY_DSN}" \
-            -H "Content-Type: application/json" \
-            -d "{
-                \"message\": \"${error_message}\",
-                \"level\": \"error\",
-                \"extra\": {
-                    \"database\": \"${db_name}\",
-                    \"status_code\": \"${status_code}\",
-                    \"hostname\": \"${HOSTNAME}\"
-                    }
-}" 
-    fi 
+ if [ ! -z "${SENTRY_DSN}" ]; then
+    wget -q --header="Content-Type: application/json" \
+         --post-data="{
+            \"message\": \"${error_message}\",
+            \"level\": \"error\",
+            \"extra\": {
+                \"database\": \"${db_name}\",
+                \"status_code\": \"${status_code}\",
+                \"hostname\": \"${HOSTNAME}\"
+                }
+}" \
+         -O - "${SENTRY_DSN}"
+fi
 }
 
 STATUS=0
