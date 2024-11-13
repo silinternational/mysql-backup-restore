@@ -24,7 +24,7 @@ error_to_sentry() {
                     \"trace_id\": \"${SENTRY_TRACE_ID}\"
                     }
 }"; fi 
-
+}
 STATUS=0
 
 echo "mysql-backup-restore: backup: Started"
