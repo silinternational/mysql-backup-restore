@@ -56,9 +56,10 @@ for dbName in ${DB_NAMES}; do
 
         error_message="MySQL backup failed for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-
         echo "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
+        else 
+            echo "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
     start=$(date +%s)
@@ -68,9 +69,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Compression failed for database ${dbName} backup"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        
         echo "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
-        exit $STATUS
+        exit $STATUS 
+    else
+        echo "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
     start=$(date +%s)
@@ -80,9 +82,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="S3 copy failed for database ${dbName} backup"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-
         echo "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
+    else
+        echo "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
     if [ "${B2_BUCKET}" != "" ]; then
@@ -98,9 +101,10 @@ for dbName in ${DB_NAMES}; do
         if [ $STATUS -ne 0 ]; then
             error_message="Backblaze B2 copy failed for database ${dbName} backup"
             error_to_sentry "$error_message" "$dbName" "$STATUS"
-
             echo "mysql-backup-restore: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
             exit $STATUS
+        else
+            echo "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
 
