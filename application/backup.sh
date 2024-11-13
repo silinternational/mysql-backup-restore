@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # Error Tracking
 if [ ! -z "${ SENTRY_DSN }"]; then
     eval "$(curl -sL https://sentry.io/get-curl.sh)"
