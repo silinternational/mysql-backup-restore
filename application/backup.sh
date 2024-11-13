@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Error Tracking
-if [ ! -z "${ SENTRY_DSN }"]; then
+if [ ! -z "${SENTRY_DSN}" ]; then
     eval "$(curl -sL https://sentry.io/get-curl.sh)"
     SENTRY_TRACE_ID=$(uuidgen)
 fi
