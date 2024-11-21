@@ -1,13 +1,8 @@
 services:
-    data:
-        image: silintl/data-volume:latest
-        volumes:
-          - ./application:/data
-
     db:
         image: mariadb:10
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
         ports:
             - "3306"
         environment:
