@@ -21,8 +21,8 @@ services:
 
     restore:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
 #        volumes:
 #            - ./test/world.sql.gz:/tmp/world.sql.gz
 #            - ./test/employees.sql.gz:/tmp/employees.sql.gz
@@ -38,8 +38,8 @@ services:
 
     backup:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
         env_file:
             - ./local.env
         environment:
