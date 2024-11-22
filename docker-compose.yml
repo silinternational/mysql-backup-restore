@@ -1,13 +1,8 @@
 services:
-    data:
-        image: silintl/data-volume:latest
-        volumes:
-          - ./application:/data
-
     db:
         image: mariadb:10
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
         ports:
             - "3306"
         environment:
@@ -26,8 +21,8 @@ services:
 
     restore:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
 #        volumes:
 #            - ./test/world.sql.gz:/tmp/world.sql.gz
 #            - ./test/employees.sql.gz:/tmp/employees.sql.gz
@@ -43,8 +38,8 @@ services:
 
     backup:
         build: ./
-        volumes_from:
-            - data
+        volumes:
+            - ./application:/data
         env_file:
             - ./local.env
         environment:
