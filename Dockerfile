@@ -12,6 +12,10 @@ RUN apk update \
             py3-dateutil \
             py3-six \
             s3cmd
+# Install Sentry CLI using wget
+ && wget -q https://sentry.io/get-cli/ -O /tmp/install-sentry.sh \
+ && bash /tmp/install-sentry.sh \
+ && rm /tmp/install-sentry.sh
 
 COPY application/ /data/
 WORKDIR /data
