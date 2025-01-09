@@ -1,10 +1,3 @@
-# Build stage
-FROM python:3-alpine as builder
-
-RUN apk add --no-cache curl \
-    && curl -sL https://sentry.io/get-cli/ | bash
-
-# Final stage
 FROM python:3-alpine
 
 # Current version of s3cmd is in edge/testing repo
@@ -12,16 +5,13 @@ RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/reposito
 
 # Install everything via repo, because repo & pip installs can break things
 RUN apk update \
-    && apk add --no-cache \
+ && apk add --no-cache \
             bash \
             mysql-client \
             py3-magic \
             py3-dateutil \
             py3-six \
             s3cmd
-
-# Copy Sentry CLI binary from builder
-COPY --from=builder /usr/local/bin/sentry-cli /usr/local/bin/sentry-cli
 
 COPY application/ /data/
 WORKDIR /data

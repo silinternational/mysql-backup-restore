@@ -7,17 +7,18 @@ error_to_sentry() {
     local status_code="$3"
 
 if [ ! -z "${SENTRY_DSN}" ]; then
-        # Export the DSN for Sentry CLI
-        export SENTRY_DSN="${SENTRY_DSN}"
-        
-        # Send event using Sentry CLI
-        sentry-cli send-event \
-            --message "${error_message}" \
-            --level error \
-            --extra database="${db_name}" \
-            --extra status_code="${status_code}" \
-            --extra hostname="${HOSTNAME}"
-    fi
+    wget -q --header="Content-Type: application/json" \
+         --post-data="{
+            \"message\": \"${error_message}\",
+            \"level\": \"error\",
+            \"extra\": {
+                \"database\": \"${db_name}\",
+                \"status_code\": \"${status_code}\",
+                \"hostname\": \"${HOSTNAME}\"
+                }
+}" \
+         -O - "${SENTRY_DSN}"
+fi
 }
 
 STATUS=0
