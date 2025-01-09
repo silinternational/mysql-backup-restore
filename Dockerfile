@@ -5,17 +5,17 @@ RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >> /etc/apk/reposito
 
 # Install everything via repo, because repo & pip installs can break things
 RUN apk update \
- && apk add --no-cache \
+    && apk add --no-cache \
             bash \
             mysql-client \
             py3-magic \
             py3-dateutil \
             py3-six \
-            s3cmd
-# Install Sentry CLI using wget
- && wget -q https://sentry.io/get-cli/ -O /tmp/install-sentry.sh \
- && bash /tmp/install-sentry.sh \
- && rm /tmp/install-sentry.sh
+            s3cmd \
+            curl \
+    && wget -q https://sentry.io/get-cli/ -O /tmp/install-sentry.sh \
+    && bash /tmp/install-sentry.sh \
+    && rm /tmp/install-sentry.sh
 
 COPY application/ /data/
 WORKDIR /data
