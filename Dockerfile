@@ -14,7 +14,7 @@ RUN apk update \
             s3cmd \
             curl
             
-# Copy Sentry CLI binary from builder
+# Install Sentry CLI as a separate RUN command
 RUN curl -sL https://sentry.io/get-cli/ | bash
 
 COPY application/ /data/
