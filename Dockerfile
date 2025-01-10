@@ -13,7 +13,7 @@ RUN apk update \
             py3-six \
             s3cmd \
             curl
-
+            
 # Copy Sentry CLI binary from builder
 RUN curl -sL https://sentry.io/get-cli/ | bash
 
