@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
 
-# Send error to Sentry
+# Initialize Sentry CLI
+init_sentry() {
+    if [ -z "${SENTRY_DSN}" ]; then
+        echo "Warning: SENTRY_DSN is not set. Error reporting will be disabled."
+        return 1
+    fi
+
+    # Configure Sentry CLI with DSN
+    export SENTRY_DSN="${SENTRY_DSN}"
+}
+
+# Send error to Sentry using sentry-cli
 error_to_sentry() {
     local error_message="$1"
     local db_name="$2"
     local status_code="$3"
 
-if [ ! -z "${SENTRY_DSN}" ]; then
-    wget -q --header="Content-Type: application/json" \
-         --post-data="{
-            \"message\": \"${error_message}\",
-            \"level\": \"error\",
-            \"extra\": {
-                \"database\": \"${db_name}\",
-                \"status_code\": \"${status_code}\",
-                \"hostname\": \"${HOSTNAME}\"
-                }
-}" \
-         -O - "${SENTRY_DSN}"
-fi
+    if [ -n "${SENTRY_DSN}" ]; then
+        sentry-cli send-event \
+            --level "error" \
+            --message "${error_message}" \
+            --tag database="${db_name}" \
+            --tag status_code="${status_code}" \
+            --tag hostname="${HOSTNAME}"
+    fi
 }
+
+# Initialize Sentry at the start
+init_sentry
 
 STATUS=0
 
@@ -91,7 +100,7 @@ for dbName in ${DB_NAMES}; do
     if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
         s3cmd \
-            --access_key=${B2_APPLICATION_KEY_ID} \
+        --access_key=${B2_APPLICATION_KEY_ID} \
 	    --secret_key=${B2_APPLICATION_KEY} \
 	    --host=${B2_HOST} \
 	    --host-bucket='%(bucket)s.'"${B2_HOST}" \
@@ -107,8 +116,15 @@ for dbName in ${DB_NAMES}; do
             echo "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
-
 done
 
+# Send success event to Sentry
+if [ $STATUS -eq 0 ]; then
+    sentry-cli send-event \
+        --level "info" \
+        --message "Backup completed successfully" \
+        --tag status="success" \
+        --tag databases="${DB_NAMES}"
+fi
 echo "mysql-backup-restore: backup: Completed"
 exit $STATUS
