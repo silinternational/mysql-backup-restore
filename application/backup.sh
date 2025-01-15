@@ -85,58 +85,6 @@ EOF
     log "Error event sent to Sentry: ${error_message}"
 }
 
-# Send success to Sentry
-send_success_to_sentry() {
-    if [ -z "${SENTRY_DSN:-}" ]; then
-        log "ERROR: SENTRY_DSN not set"
-        return 1
-    fi
-
-    # Parse DSN
-    local dsn_parts=($(parse_sentry_dsn "$SENTRY_DSN" | tr '|' ' '))
-    local project_id="${dsn_parts[0]}"
-    local key="${dsn_parts[1]}"
-    local host="${dsn_parts[2]}"
-
-    # Generate event ID and timestamp
-    local event_id=$(generate_uuid)
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
-
-    # Create success payload
-    local success_payload=$(cat <<EOF
-{
-    "event_id": "${event_id}",
-    "timestamp": "${timestamp}",
-    "level": "info",
-    "message": "Backup completed successfully",
-    "logger": "mysql-backup",
-    "platform": "bash",
-    "environment": "production",
-    "tags": {
-        "status": "success",
-        "databases": "${DB_NAMES}",
-        "host": "$(hostname)"
-    }
-}
-EOF
-)
-
-    # Send to Sentry
-    local response
-    response=$(curl -s -X POST \
-        "https://${host}/api/${project_id}/store/" \
-        -H "Content-Type: application/json" \
-        -H "X-Sentry-Auth: Sentry sentry_version=7, sentry_key=${key}, sentry_client=bash-script/1.0" \
-        -d "${success_payload}" 2>&1)
-
-    if [ $? -ne 0 ]; then
-        log "ERROR: Failed to send success event to Sentry: ${response}"
-        return 1
-    fi
-
-    log "Success event sent to Sentry"
-}
-
 STATUS=0
 
 log "mysql-backup-restore: backup: Started"
@@ -177,7 +125,7 @@ for dbName in ${DB_NAMES}; do
     else 
         log "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
-
+    # Compression
     start=$(date +%s)
     gzip -f /tmp/${dbName}.sql
     STATUS=$?
@@ -191,6 +139,7 @@ for dbName in ${DB_NAMES}; do
         log "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
+    # S3 Upload
     start=$(date +%s)
     s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET}
     STATUS=$?
@@ -203,7 +152,7 @@ for dbName in ${DB_NAMES}; do
     else
         log "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
-
+    # Backblaze B2 Upload
     if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
         s3cmd \
@@ -225,10 +174,4 @@ for dbName in ${DB_NAMES}; do
     fi
 done
 
-# Send success event to Sentry if all operations completed successfully
-if [ $STATUS -eq 0 ]; then
-    send_success_to_sentry
-fi
-
-log "mysql-backup-restore: backup: Completed"
 exit $STATUS
