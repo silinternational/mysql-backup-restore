@@ -7,52 +7,42 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${level}: ${message}"
 }
 
-# Optional Sentry reporting
+# Sentry reporting with validation and backwards compatibility
 error_to_sentry() {
     local error_message="$1"
     local db_name="$2"
     local status_code="$3"
 
-    # Only attempt Sentry reporting if SENTRY_DSN is configured
-    if [ -n "${SENTRY_DSN:-}" ]; then
-        if command -v sentry-cli >/dev/null 2>&1; then
-            # Use sentry-cli if available
-            sentry-cli send-event \
-                --level error \
-                --message "$error_message" \
-                --tag database="$db_name" \
-                --tag status="$status_code" \
-                --tag host="$(hostname)" \
-                --extra script_path="$0" || true  # Don't fail if Sentry reporting fails
-        else
-            # Log that Sentry reporting was attempted but cli not found
-            log "WARN" "Sentry reporting configured but sentry-cli not found"
-        fi
+    # Early return if SENTRY_DSN is not configured - ensures backup continues
+    if [ -z "${SENTRY_DSN:-}" ]; then
+        log "DEBUG" "Sentry logging skipped - SENTRY_DSN not configured"
+        return 0
     fi
-}
 
-# Optional Sentry reporting for successful backups
-success_to_sentry() {
-    local success_message="$1"
-    local db_name="$2"
-    local status_code="$3"
-
-    # Only attempt Sentry reporting if SENTRY_DSN is configured
-    if [ -n "${SENTRY_DSN:-}" ]; then
-        if command -v sentry-cli >/dev/null 2>&1; then
-            # Use sentry-cli if available
-            sentry-cli send-event \
-                --level info \
-                --message "$success_message" \
-                --tag database="$db_name" \
-                --tag status="$status_code" \
-                --tag host="$(hostname)" \
-                --extra script_path="$0" || true
-        else
-            # Log that Sentry reporting was attempted but cli not found
-            log "WARN" "Sentry reporting configured but sentry-cli not found"
-        fi
+    # Validate SENTRY_DSN format
+    if ! [[ "${SENTRY_DSN}" =~ ^https://[^@]+@[^/]+/[0-9]+$ ]]; then
+        log "WARN" "Invalid SENTRY_DSN format - Sentry logging will be skipped"
+        return 0
     fi
+
+    # Check for sentry-cli availability
+    if ! command -v sentry-cli >/dev/null 2>&1; then
+        log "WARN" "sentry-cli not found - Sentry logging will be skipped"
+        return 0
+    fi
+
+    # Attempt to send event to Sentry
+    if sentry-cli send-event \
+        --message="${error_message}" \
+        --level=error \
+        --tag "database:${db_name}" \
+        --tag "status:${status_code}"; then
+        log "DEBUG" "Successfully sent error to Sentry - Message: ${error_message}, Database: ${db_name}, Status: ${status_code}"
+    else
+        log "WARN" "Failed to send error to Sentry, but continuing backup process"
+    fi
+
+    return 0
 }
 
 STATUS=0
@@ -93,7 +83,6 @@ for dbName in ${DB_NAMES}; do
         log "ERROR" "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
     else 
-        success_to_sentry "MySQL backup completed successfully for database ${dbName}" "$dbName" "$STATUS"
         log "INFO" "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
@@ -108,7 +97,6 @@ for dbName in ${DB_NAMES}; do
         log "ERROR" "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS 
     else
-        success_to_sentry "Compression completed successfully for database ${dbName}" "$dbName" "$STATUS"
         log "INFO" "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
@@ -123,11 +111,10 @@ for dbName in ${DB_NAMES}; do
         log "ERROR" "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
     else
-        success_to_sentry "S3 upload completed successfully for database ${dbName}" "$dbName" "$STATUS"
         log "INFO" "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
-    # Backblaze B2 Upload
+    # Backblaze B2 Upload (Optional)
     if [ "${B2_BUCKET}" != "" ]; then
         start=$(date +%s)
         s3cmd \
@@ -144,7 +131,6 @@ for dbName in ${DB_NAMES}; do
             log "ERROR" "mysql-backup-restore: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
             exit $STATUS
         else
-            success_to_sentry "Backblaze B2 upload completed successfully for database ${dbName}" "$dbName" "$STATUS"
             log "INFO" "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
