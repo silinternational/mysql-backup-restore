@@ -13,7 +13,7 @@ error_to_sentry() {
     local db_name="$2"
     local status_code="$3"
 
-    # Early return if SENTRY_DSN is not configured - ensures backup continues
+    # Check if SENTRY_DSN is configured - ensures backup continues
     if [ -z "${SENTRY_DSN:-}" ]; then
         log "DEBUG" "Sentry logging skipped - SENTRY_DSN not configured"
         return 0
@@ -22,12 +22,6 @@ error_to_sentry() {
     # Validate SENTRY_DSN format
     if ! [[ "${SENTRY_DSN}" =~ ^https://[^@]+@[^/]+/[0-9]+$ ]]; then
         log "WARN" "Invalid SENTRY_DSN format - Sentry logging will be skipped"
-        return 0
-    fi
-
-    # Check for sentry-cli availability
-    if ! command -v sentry-cli >/dev/null 2>&1; then
-        log "WARN" "sentry-cli not found - Sentry logging will be skipped"
         return 0
     fi
 
