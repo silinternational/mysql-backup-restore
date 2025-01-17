@@ -27,8 +27,8 @@ error_to_sentry() {
 
     # Attempt to send event to Sentry
     if sentry-cli send-event \
-        --message="${error_message}" \
-        --level=error \
+        --message "${error_message}" \
+        --level error \
         --tag "database:${db_name}" \
         --tag "status:${status_code}"; then
         log "DEBUG" "Successfully sent error to Sentry - Message: ${error_message}, Database: ${db_name}, Status: ${status_code}"
