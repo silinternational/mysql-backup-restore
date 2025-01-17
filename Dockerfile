@@ -12,9 +12,10 @@ RUN apk update \
             py3-dateutil \
             py3-six \
             s3cmd \
-            curl
-
-# Install Sentry CLI as a separate RUN command
+            curl \
+            jq
+            
+# Install sentry-cli
 RUN curl -sL https://sentry.io/get-cli/ | bash
 
 COPY application/ /data/
