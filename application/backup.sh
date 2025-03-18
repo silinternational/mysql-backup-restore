@@ -80,7 +80,34 @@ for dbName in ${DB_NAMES}; do
         log "INFO" "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
-    # Compression
+    # Generate checksum for the backup file
+    log "INFO" "mysql-backup-restore: Generating checksum for backup file"
+    cd /tmp || {
+        error_message="Failed to change directory to /tmp"
+        error_to_sentry "$error_message" "$dbName" "1"
+        log "ERROR" "mysql-backup-restore: FATAL: ${error_message}"
+        exit 1
+    }
+
+    sha256sum "${dbName}.sql" > "${dbName}.sql.sha256" || {
+        error_message="Failed to generate checksum for backup of ${dbName}"
+        error_to_sentry "$error_message" "$dbName" "1"
+        log "ERROR" "mysql-backup-restore: FATAL: ${error_message}"
+        exit 1
+    }
+    log "DEBUG" "Checksum file contents: $(cat "${dbName}.sql.sha256")"
+
+    # Validate checksum
+    log "INFO" "mysql-backup-restore: Validating backup checksum"
+    sha256sum -c "${dbName}.sql.sha256" || {
+        error_message="Checksum validation failed for backup of ${dbName}"
+        error_to_sentry "$error_message" "$dbName" "1"
+        log "ERROR" "mysql-backup-restore: FATAL: ${error_message}"
+        exit 1
+    }
+    log "INFO" "mysql-backup-restore: Checksum validation successful"
+
+    # Compress backup file
     start=$(date +%s)
     gzip -f /tmp/${dbName}.sql
     STATUS=$?
@@ -94,18 +121,36 @@ for dbName in ${DB_NAMES}; do
         log "INFO" "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
-    # S3 Upload
+    # Compress checksum file separately
+    gzip -f "${dbName}.sql.sha256"
+    if [ $? -ne 0 ]; then
+        log "WARN" "mysql-backup-restore: Failed to compress checksum file, but continuing backup process"
+    fi
+
+    # Upload both compressed files to S3
     start=$(date +%s)
+    
+    # Upload backup file
     s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET}
     STATUS=$?
-    end=$(date +%s)
     if [ $STATUS -ne 0 ]; then
         error_message="S3 copy failed for database ${dbName} backup"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS)."
+        exit $STATUS
+    fi
+    
+    # Upload checksum file
+    s3cmd put /tmp/${dbName}.sql.sha256.gz ${S3_BUCKET}
+    STATUS=$?
+    end=$(date +%s)
+    if [ $STATUS -ne 0 ]; then
+        error_message="S3 copy failed for database ${dbName} checksum"
+        error_to_sentry "$error_message" "$dbName" "$STATUS"
+        log "ERROR" "mysql-backup-restore: FATAL: Copy checksum to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS)."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Copy backup to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Copy backup and checksum to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
 
     # Backblaze B2 Upload (Optional)
@@ -128,8 +173,11 @@ for dbName in ${DB_NAMES}; do
             log "INFO" "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
+    
+    # Clean up temporary files
+    rm -f "/tmp/${dbName}.sql.gz" "/tmp/${dbName}.sql.sha256.gz"
 done
 
-echo "mysql-backup-restore: backup: Completed"
+log "INFO" "mysql-backup-restore: backup: Completed"
 
-exit $STATUS
+exit $STATUS;
