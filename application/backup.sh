@@ -7,6 +7,29 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${level}: ${message}"
 }
 
+# Function to detect the appropriate database dump command
+function get_database_dump_command() {
+    MARIADB=$(which mariadb-dump)
+    MYSQL=$(which mysqldump)
+    MARIADB_STAT=$(stat $MARIADB 2>/dev/null | grep file)
+    MYSQL_STAT=$(stat $MYSQL 2>/dev/null | grep file)
+
+    # If both exist, prefer mysqldump for MySQL RDS
+    if [ -n "$MYSQL_STAT" ] && [ -n "$MARIADB_STAT" ]; then
+        DATABASE_DUMP_COMMAND="mysqldump";
+        log "INFO" "Both mariadb-dump and mysqldump exist, using ${DATABASE_DUMP_COMMAND} for MySQL RDS"
+    elif [ -z "$MYSQL_STAT" ] && [ -n "$MARIADB_STAT" ]; then
+        DATABASE_DUMP_COMMAND="mariadb-dump";
+        log "INFO" "mariadb-dump exists, using ${DATABASE_DUMP_COMMAND} for MariaDB"
+    elif [ -n "$MYSQL_STAT" ] && [ -z "$MARIADB_STAT" ]; then
+        DATABASE_DUMP_COMMAND="mysqldump";
+        log "INFO" "mysqldump exists, using ${DATABASE_DUMP_COMMAND} for MySQL"
+    else
+        log "ERROR" "Neither mariadb-dump nor mysqldump exist, exiting"
+        exit 1
+    fi
+}
+
 # Sentry reporting with validation and backwards compatibility
 error_to_sentry() {
     local error_message="$1"
@@ -43,11 +66,14 @@ STATUS=0
 
 log "INFO" "mysql-backup-restore: backup: Started"
 
+# Determine which database dump command to use
+DATABASE_DUMP_COMMAND="";
+get_database_dump_command;
 for dbName in ${DB_NAMES}; do
     log "INFO" "mysql-backup-restore: Backing up ${dbName}"
 
     start=$(date +%s)
-    mysqldump -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql
+    ${DATABASE_DUMP_COMMAND} -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql
     STATUS=$?
     end=$(date +%s)
 
