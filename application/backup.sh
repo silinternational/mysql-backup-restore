@@ -9,8 +9,8 @@ log() {
 
 # Function to detect the appropriate database dump command
 function get_database_dump_command() {
-    MARIADB=$(which mariadb-dump)
-    MYSQL=$(which mysqldump)
+    MARIADB=$(which mariadb-dump 2>/dev/null)
+    MYSQL=$(which mysqldump 2>/dev/null)
     MARIADB_STAT=$(stat $MARIADB 2>/dev/null | grep file)
     MYSQL_STAT=$(stat $MYSQL 2>/dev/null | grep file)
 
