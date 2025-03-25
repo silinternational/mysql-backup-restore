@@ -25,7 +25,9 @@ function get_database_dump_command() {
         DATABASE_DUMP_COMMAND="mysqldump";
         log "INFO" "mysqldump exists, using ${DATABASE_DUMP_COMMAND} for MySQL"
     else
-        log "ERROR" "Neither mariadb-dump nor mysqldump exist, exiting"
+        error_message="Neither mariadb-dump nor mysqldump exist. Backup cannot proceed"
+        error_to_sentry "$error_message" "system" 1
+        log "ERROR" "Neither mariadb-dump nor mysqldump exist, Backup cannot proceed"
         exit 1
     fi
 }
