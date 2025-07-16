@@ -7,6 +7,15 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${level}: ${message}"
 }
 
+# Determine whether to use server cert verification
+function get_server_cert() {
+    MYSQL="mysql"
+    if [ -n "$SSL_CA_BASE64" ]; then
+        echo "$SSL_CA_BASE64" | base64 -d > /tmp/ca.pem
+        MYSQL="mysql --ssl-ca=/tmp/ca.pem"
+    fi
+}
+
 # Sentry reporting with validation and backwards compatibility
 error_to_sentry() {
     local error_message="$1"
@@ -42,6 +51,8 @@ error_to_sentry() {
 STATUS=0
 
 log "INFO" "mysql-backup-restore: restore: Started"
+
+get_server_cert
 
 for dbName in ${DB_NAMES}; do
     log "INFO" "mysql-backup-restore: Restoring ${dbName}"
@@ -125,7 +136,7 @@ for dbName in ${DB_NAMES}; do
 
     # Restore database
     start=$(date +%s)
-    mysql -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${dbName} < /tmp/${dbName}.sql
+    $MYSQL -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${dbName} < /tmp/${dbName}.sql
     STATUS=$?
     end=$(date +%s)
 

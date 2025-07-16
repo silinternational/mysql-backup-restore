@@ -1,14 +1,12 @@
-start: restore backup
+test: restore backup
 
-restore: db
-	docker compose up -d restore
+restore:
+	docker compose run --rm app bash -c "s3cmd put /root/world* s3://world"
+	docker compose run --rm --env MODE=restore app
 
-backup: db
-	docker compose up -d backup
-
-db:
-	docker compose up -d db phpmyadmin
+backup:
+	docker compose run --rm --env MODE=backup app
 
 clean:
 	docker compose kill
-	docker system prune -f
+	docker compose rm -f
