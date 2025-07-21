@@ -1,11 +1,14 @@
 test: restore backup
 
-restore:
-	docker compose run --rm app bash -c "s3cmd put /root/world* s3://world"
+restore: bucket
+	docker compose run --rm app bash -c "s3cmd put /root/world* \$$S3_BUCKET"
 	docker compose run --rm --env MODE=restore app
 
-backup:
+backup: bucket
 	docker compose run --rm --env MODE=backup app
+
+bucket:
+	-docker compose run --rm app bash -c "s3cmd mb -f \$$S3_BUCKET"
 
 clean:
 	docker compose kill
