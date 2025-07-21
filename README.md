@@ -23,6 +23,8 @@ Service to backup and/or restore mysql databases to/from S3 and optionally to B2
 
 `S3_BUCKET` e.g., _s3://database-backups_ **NOTE: no trailing slash**
 
+`SSL_CA_BASE64` (optional) server CA pem file, base64-encoded. If provided, server cert verification is required.
+
 >**It's recommended that your S3 bucket have versioning turned on.** Each backup creates a file of the form _dbname_.sql.gz. If versioning is not turned on, the previous backup file will be replaced with the new one, resulting in a single level of backups.
 
 `AWS_ACCESS_KEY` used for S3 interactions

@@ -3,12 +3,19 @@ services:
         image: mariadb:10
         volumes:
             - ./application:/data
+            - ./test/certs:/certs:ro
+            - ./test/db.cnf:/etc/mysql/conf.d/my.cnf:ro
         ports:
             - "3306"
         environment:
             MYSQL_ROOT_PASSWORD: r00tp@ss!
             MYSQL_DATABASE: world
-#            MYSQL_DATABASE: employees
+        healthcheck:
+            test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+            start_period: 2s
+            interval: 1s
+            timeout: 5s
+            retries: 3
 
     phpmyadmin:
         image: phpmyadmin/phpmyadmin:latest
@@ -19,33 +26,39 @@ services:
             PMA_USER: root
             PMA_PASSWORD: r00tp@ss!
 
-    restore:
+    app:
         build: ./
         volumes:
             - ./application:/data
-#        volumes:
-#            - ./test/world.sql.gz:/tmp/world.sql.gz
-#            - ./test/employees.sql.gz:/tmp/employees.sql.gz
+            - ./test/world.sql.gz:/root/world.sql.gz
+            - ./test/world.sql.sha256.gz:/root/world.sql.sha256.gz
+            - ./test/s3cfg:/root/.s3cfg
         env_file:
             - ./local.env
+            - ./test/cert.env
         environment:
             MYSQL_HOST: db
             MYSQL_USER: root
             MYSQL_PASSWORD: r00tp@ss!
-            DB_NAMES: world #employees
+            S3_BUCKET: s3://world
+            DB_NAMES: world
             MODE: restore
-            CRON_SCHEDULE: "* * * * *"
+        depends_on:
+            db:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
 
-    backup:
-        build: ./
-        volumes:
-            - ./application:/data
-        env_file:
-            - ./local.env
+    minio:
+        image: minio/minio
+        ports:
+            - "9001:9001"
+        command: server /data --console-address ":9001"
         environment:
-            MYSQL_HOST: db
-            MYSQL_USER: root
-            MYSQL_PASSWORD: r00tp@ss!
-            DB_NAMES: world #employees
-            MODE: backup
-            CRON_SCHEDULE: "* * * * *"
+            MINIO_ROOT_USER: abc123
+            MINIO_ROOT_PASSWORD: abcd1234
+        healthcheck:
+            test: ["CMD", "mc", "ready", "local"]
+            interval: 3s
+            timeout: 2s
+            retries: 3

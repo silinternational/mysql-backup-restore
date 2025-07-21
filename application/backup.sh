@@ -32,6 +32,15 @@ function get_database_dump_command() {
     fi
 }
 
+# Determine whether to use server cert verification
+function get_server_cert() {
+    CA_FLAGS=""
+    if [ -n "$SSL_CA_BASE64" ]; then
+        echo "$SSL_CA_BASE64" | base64 -d > /tmp/ca.pem
+        CA_FLAGS="--ssl-verify-server-cert --ssl-ca=/tmp/ca.pem"
+    fi
+}
+
 # Sentry reporting with validation and backwards compatibility
 error_to_sentry() {
     local error_message="$1"
@@ -71,11 +80,12 @@ log "INFO" "mysql-backup-restore: backup: Started"
 # Determine which database dump command to use
 DATABASE_DUMP_COMMAND="";
 get_database_dump_command;
+get_server_cert;
 for dbName in ${DB_NAMES}; do
     log "INFO" "mysql-backup-restore: Backing up ${dbName}"
 
     start=$(date +%s)
-    ${DATABASE_DUMP_COMMAND} -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql
+    ${DATABASE_DUMP_COMMAND} ${CA_FLAGS} -h ${MYSQL_HOST} -u ${MYSQL_USER} -p"${MYSQL_PASSWORD}" ${MYSQL_DUMP_ARGS} ${dbName} > /tmp/${dbName}.sql
     STATUS=$?
     end=$(date +%s)
 
@@ -104,7 +114,7 @@ for dbName in ${DB_NAMES}; do
         error_to_sentry "$error_message" "$dbName" "$STATUS"
         log "ERROR" "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
         exit $STATUS
-    else 
+    else
         log "INFO" "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
@@ -144,7 +154,7 @@ for dbName in ${DB_NAMES}; do
         error_message="Compression failed for database ${dbName} backup"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
         log "ERROR" "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
-        exit $STATUS 
+        exit $STATUS
     else
         log "INFO" "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
     fi
@@ -157,7 +167,7 @@ for dbName in ${DB_NAMES}; do
 
     # Upload both compressed files to S3
     start=$(date +%s)
-    
+
     # Upload backup file
     s3cmd put /tmp/${dbName}.sql.gz ${S3_BUCKET}
     STATUS=$?
@@ -167,7 +177,7 @@ for dbName in ${DB_NAMES}; do
         log "ERROR" "mysql-backup-restore: FATAL: Copy backup to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS)."
         exit $STATUS
     fi
-    
+
     # Upload checksum file
     s3cmd put /tmp/${dbName}.sql.sha256.gz ${S3_BUCKET}
     STATUS=$?
@@ -201,7 +211,7 @@ for dbName in ${DB_NAMES}; do
             log "INFO" "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
         fi
     fi
-    
+
     # Clean up temporary files
     rm -f "/tmp/${dbName}.sql.gz" "/tmp/${dbName}.sql.sha256.gz"
 done
