@@ -126,10 +126,10 @@ for dbName in ${DB_NAMES}; do
 
         error_message="MySQL backup failed for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Backup of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Backup of ${dbName} completed in $(expr ${end} - ${start}) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
+        log "INFO" "mysql-backup-restore: Backup of ${dbName} completed in $((${end} - ${start})) seconds, ($(stat -c %s /tmp/${dbName}.sql) bytes)."
     fi
 
     # Generate checksum for the backup file
@@ -167,10 +167,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Compression failed for database ${dbName} backup"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Compressing backup of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Compressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Compressing backup of ${dbName} completed in $((${end} - ${start})) seconds."
     fi
 
     # Compress checksum file separately
@@ -202,7 +202,7 @@ for dbName in ${DB_NAMES}; do
         log "ERROR" "mysql-backup-restore: FATAL: Copy checksum to ${S3_BUCKET} of ${dbName} returned non-zero status ($STATUS)."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Copy backup and checksum to ${S3_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Copy backup and checksum to ${S3_BUCKET} of ${dbName} completed in $((${end} - ${start})) seconds."
     fi
 
     # Backblaze B2 Upload (Optional)
@@ -219,10 +219,10 @@ for dbName in ${DB_NAMES}; do
         if [ $STATUS -ne 0 ]; then
             error_message="Backblaze B2 copy failed for database ${dbName} backup"
             error_to_sentry "$error_message" "$dbName" "$STATUS"
-            log "ERROR" "mysql-backup-restore: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+            log "ERROR" "mysql-backup-restore: FATAL: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
             exit $STATUS
         else
-            log "INFO" "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+            log "INFO" "mysql-backup-restore: Copy backup to Backblaze B2 bucket ${B2_BUCKET} of ${dbName} completed in $((${end} - ${start})) seconds."
         fi
     fi
 

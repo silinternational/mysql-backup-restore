@@ -80,10 +80,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Failed to download backup file for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Copy backup of ${dbName} from ${S3_BUCKET} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Copy backup of ${dbName} from ${S3_BUCKET} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Copy backup of ${dbName} from ${S3_BUCKET} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Copy backup of ${dbName} from ${S3_BUCKET} completed in $((${end} - ${start})) seconds."
     fi
 
     # Download checksum file
@@ -95,10 +95,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Failed to download checksum file for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Copy checksum of ${dbName} from ${S3_BUCKET} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Copy checksum of ${dbName} from ${S3_BUCKET} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Copy checksum of ${dbName} from ${S3_BUCKET} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Copy checksum of ${dbName} from ${S3_BUCKET} completed in $((${end} - ${start})) seconds."
     fi
 
     # Decompress backup file
@@ -110,10 +110,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Failed to decompress backup file for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Decompressing backup of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Decompressing backup of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Decompressing backup of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Decompressing backup of ${dbName} completed in $((${end} - ${start})) seconds."
     fi
 
     # Decompress checksum file
@@ -125,10 +125,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Failed to decompress checksum file for database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Decompressing checksum of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Decompressing checksum of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Decompressing checksum of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Decompressing checksum of ${dbName} completed in $((${end} - ${start})) seconds."
     fi
 
     # Verify checksum
@@ -157,10 +157,10 @@ for dbName in ${DB_NAMES}; do
     if [ $STATUS -ne 0 ]; then
         error_message="Failed to restore database ${dbName}"
         error_to_sentry "$error_message" "$dbName" "$STATUS"
-        log "ERROR" "mysql-backup-restore: FATAL: Restore of ${dbName} returned non-zero status ($STATUS) in $(expr ${end} - ${start}) seconds."
+        log "ERROR" "mysql-backup-restore: FATAL: Restore of ${dbName} returned non-zero status ($STATUS) in $((${end} - ${start})) seconds."
         exit $STATUS
     else
-        log "INFO" "mysql-backup-restore: Restore of ${dbName} completed in $(expr ${end} - ${start}) seconds."
+        log "INFO" "mysql-backup-restore: Restore of ${dbName} completed in $((${end} - ${start})) seconds."
     fi
 
     # Clean up temporary files
